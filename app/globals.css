@@ -1,26 +1,90 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #14120f;
+  --ink-2: #1d1a16;
+  --graphite: #2a2724;
+  --graphite-2: #3a3632;
+  --bone: #f3efe6;
+  --bone-2: #e6e0d3;
+  --muted: #a39d92;
+  --accent: #ff5a1f;
+  --accent-deep: #d4440f;
+  --moss: #3f6b3f;
+  --moss-bright: #6fae6a;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --r-outer: 24px;
+  --r-inner: 16px;
+  --r-control: 10px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-graphite: var(--graphite);
+  --color-graphite-2: var(--graphite-2);
+  --color-bone: var(--bone);
+  --color-bone-2: var(--bone-2);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
+  --color-moss: var(--moss);
+  --color-moss-bright: var(--moss-bright);
+
+  --font-display: var(--font-display);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-jetbrains);
+
+  --radius-outer: var(--r-outer);
+  --radius-inner: var(--r-inner);
+  --radius-control: var(--r-control);
+
+  --ease-out: var(--ease-out);
+  --ease-drawer: var(--ease-drawer);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
+  background: var(--ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display), ui-sans-serif, sans-serif;
+  line-height: 1.1;
+  text-wrap: balance;
+  letter-spacing: -0.01em;
+}
+
+.font-display { font-family: var(--font-display), ui-sans-serif, sans-serif; }
+.font-mono { font-family: var(--font-jetbrains), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+button, [role="button"], a {
+  transition: transform 140ms var(--ease-out), background-color 140ms var(--ease-out), color 140ms var(--ease-out), opacity 140ms var(--ease-out);
+}
+button:active, [role="button"]:active { transform: scale(0.97); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
