@@ -1,8 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-
-const STILL = 3; // mean abs pixel diff below this = no movement
-const AWAY_AFTER = 20; // seconds
+import { openCamera, usePresence } from "./presence";
 
 type Rec = { start(): void; stop(): void; continuous: boolean; interimResults: boolean; onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null };
 function speechCtor(): (new () => Rec) | null {
@@ -18,53 +16,27 @@ export function parseTask(t: string): string | null {
   return task || t.trim();
 }
 
+/** Setup step: prove the camera sees you, then say or type the task. Watching itself happens in <Watcher/> once locked. */
 export default function Watch({ onStart }: { onStart: (task: string) => void }) {
   const video = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [camErr, setCamErr] = useState("");
-  const [presence, setPresence] = useState<"present" | "away?">("present");
+  const { faces, error } = usePresence(video, stream);
   const [listening, setListening] = useState(false);
   const [heard, setHeard] = useState("");
   const [typed, setTyped] = useState("");
   const rec = useRef<Rec | null>(null);
   const Speech = speechCtor();
+  const seen = faces !== null && faces > 0;
 
-  // presence heuristic: frame diff on a 32x24 canvas every second
-  useEffect(() => {
-    if (!stream || !video.current) return;
-    video.current.srcObject = stream;
-    const c = document.createElement("canvas");
-    c.width = 32;
-    c.height = 24;
-    const ctx = c.getContext("2d", { willReadFrequently: true })!;
-    let prev: Uint8ClampedArray | null = null;
-    let still = 0;
-    const id = setInterval(() => {
-      if (!video.current) return;
-      ctx.drawImage(video.current, 0, 0, 32, 24);
-      const cur = ctx.getImageData(0, 0, 32, 24).data;
-      if (prev) {
-        let sum = 0;
-        for (let i = 0; i < cur.length; i += 4) sum += Math.abs(cur[i] - prev[i]) + Math.abs(cur[i + 1] - prev[i + 1]) + Math.abs(cur[i + 2] - prev[i + 2]);
-        const diff = sum / (cur.length / 4) / 3;
-        still = diff < STILL ? still + 1 : 0;
-        setPresence(still >= AWAY_AFTER ? "away?" : "present");
-      }
-      prev = cur;
-    }, 1000);
-    return () => {
-      clearInterval(id);
-      stream.getTracks().forEach((t) => t.stop());
-    };
-  }, [stream]);
   useEffect(() => () => rec.current?.stop(), []);
 
   const camera = async () => {
     try {
-      setStream(await navigator.mediaDevices.getUserMedia({ video: true }));
+      setStream(await openCamera());
       setCamErr("");
     } catch {
-      setCamErr("Camera unavailable. Type your task below instead.");
+      setCamErr("Camera blocked. Allow it in the address bar, then try again.");
     }
   };
 
@@ -98,6 +70,16 @@ export default function Watch({ onStart }: { onStart: (task: string) => void }) 
     setListening(true);
   };
 
+  const status = !stream
+    ? ""
+    : error
+      ? error
+      : faces === null
+        ? "loading face model…"
+        : seen
+          ? "I can see you."
+          : "No face in frame. Sit where the camera sees you.";
+
   return (
     <div className="flex flex-col gap-4">
       <div className="relative w-[240px] aspect-[4/3] rounded-[var(--r-inner)] bg-ink-2 overflow-hidden grid place-items-center">
@@ -107,14 +89,15 @@ export default function Watch({ onStart }: { onStart: (task: string) => void }) 
             Turn on camera
           </button>
         )}
-        {stream && <span aria-hidden className="absolute top-3 left-3 size-2.5 rounded-full bg-accent animate-pulse" />}
+        {stream && <span aria-hidden className={`absolute top-3 left-3 size-2.5 rounded-full ${seen ? "bg-moss-bright" : "bg-accent"}`} />}
       </div>
       {camErr && <p className="text-sm text-muted">{camErr}</p>}
-      {stream && (
+      {status && (
         <p className="text-sm text-muted" aria-live="polite">
-          camera on · presence only, nothing is uploaded. <span className="text-bone">{presence}</span>
+          <span className={seen ? "text-moss-bright" : "text-bone"}>{status}</span> Runs in your browser, nothing is uploaded.
         </p>
       )}
+      <p className="text-sm text-muted">Leave the frame without pressing Break and the timer grows 5 min. Every time.</p>
 
       <div className="flex flex-col gap-2">
         {Speech ? (
@@ -147,8 +130,8 @@ export default function Watch({ onStart }: { onStart: (task: string) => void }) 
             placeholder="I want to finish the lab report, watch over me"
           />
         </label>
-        <button type="submit" disabled={!typed.trim()} className="h-11 px-4 self-start rounded-[var(--r-control)] bg-accent text-ink hover:bg-accent-deep font-medium disabled:opacity-40">
-          Lock for 50 min
+        <button type="submit" disabled={!typed.trim() || !seen} className="h-11 px-4 self-start rounded-[var(--r-control)] bg-accent text-ink hover:bg-accent-deep font-medium disabled:opacity-40">
+          {seen ? "Lock for 50 min" : "Camera must see you first"}
         </button>
       </form>
     </div>

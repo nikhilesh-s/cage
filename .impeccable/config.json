@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "geist",
+        "createdAt": "2026-09-08T22:41:10.993Z",
+        "reason": "DESIGN.md contract: Geist is the product body face; brag video matches product brand"
+      }
+    ]
+  }
+}

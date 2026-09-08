@@ -29,7 +29,7 @@ export default function Phone({ code }: { code: string }) {
         paddingRight: "max(env(safe-area-inset-right), 20px)",
       }}
     >
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence mode="popLayout" initial={false}>
         {session === undefined ? (
           <motion.div key="404" {...enter} className="m-auto text-center">
             <h1 className="text-2xl font-bold">
@@ -88,6 +88,14 @@ function Screen({ session: s, setSession }: { session: Session; setSession: (s: 
           <p className="mt-2 text-muted">Start a session on the desk and this phone locks.</p>
         )}
         {locked && s.task && <p className="mt-2 text-bone-2">{s.task}</p>}
+        {locked && s.away && (
+          <p className="mt-3 rounded-[var(--r-control)] bg-accent px-3 py-2 font-medium text-ink" aria-live="assertive">
+            You left the desk. +5 min. Go back.
+          </p>
+        )}
+        {locked && !s.away && s.strikes > 0 && (
+          <p className="mt-2 text-sm text-accent">{s.strikes} strike{s.strikes > 1 ? "s" : ""} · +{s.strikes * 5} min</p>
+        )}
 
         {(locked || onBreak) && (
           <div className="mt-auto">
