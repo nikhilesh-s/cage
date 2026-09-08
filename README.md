@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cage
 
-## Getting Started
+Lock your phone until the assignment is in.
 
-First, run the development server:
+A two-device demo of a phone cage that plugs into your laptop: the laptop runs the desk (`/desk`), the phone scans a QR code and becomes the locked screen (`/phone/CODE`). Submitting the assignment on the laptop unlocks the phone.
+
+## Run
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `/desk` on the laptop, scan the QR on your phone (same network, or use the deployed URL). Without Redis env vars the session store falls back to in-memory, which only works on a single dev server.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Modes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Timer** — lock for 25 / 50 / 90 min.
+- **Assignment** — lock until the (mock) LMS submit button is pressed.
+- **Watch over me** — say "I want to write my essay, watch over me"; camera stays on for presence only, nothing is uploaded.
 
-## Learn More
+Guardrails: two 5-minute breaks per session, emergency unlock (two-step), visible timer and progress bar on both screens.
 
-To learn more about Next.js, take a look at the following resources:
+## Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js App Router, Tailwind v4, Motion, Upstash Redis (Vercel Marketplace). Design rules in `DESIGN.md`.

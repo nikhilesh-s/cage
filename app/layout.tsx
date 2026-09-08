@@ -7,7 +7,6 @@ const display = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-display",
   axes: ["wdth", "opsz"],
-  weight: ["400", "500", "600", "700", "800"],
 });
 
 const mono = JetBrains_Mono({
