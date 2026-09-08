@@ -16,6 +16,8 @@ export type Session = {
   breakUntil: number | null;
   resumeEndsAt: number | null; // endsAt to restore after a break
   submitted: boolean;
+  away: boolean; // watch mode: person left the frame without a break
+  strikes: number; // watch mode: times they left without a break
   log: LogEntry[];
   updatedAt: number;
 };
@@ -23,6 +25,7 @@ export type Session = {
 const TTL = 60 * 60 * 6;
 const BREAK_MS = 5 * 60 * 1000;
 const BREAKS_PER_SESSION = 2;
+const STRIKE_MS = 5 * 60 * 1000; // ponytail: flat +5 min per strike; escalate if demo wants drama
 
 // ponytail: in-memory fallback when Redis env is absent (local dev). Not shared across serverless instances.
 const mem = new Map<string, Session>();
@@ -70,6 +73,8 @@ export async function createSession(): Promise<Session> {
     breakUntil: null,
     resumeEndsAt: null,
     submitted: false,
+    away: false,
+    strikes: 0,
     log: [{ at: Date.now(), event: "session created" }],
     updatedAt: Date.now(),
   };
@@ -99,6 +104,8 @@ export type Action =
   | { type: "endBreak" }
   | { type: "emergency" }
   | { type: "submit" }
+  | { type: "away" }
+  | { type: "back" }
   | { type: "end" };
 
 export function apply(s: Session, a: Action): Session {
@@ -114,6 +121,8 @@ export function apply(s: Session, a: Action): Session {
       s.breakUntil = null;
       s.resumeEndsAt = null;
       s.submitted = false;
+      s.away = false;
+      s.strikes = 0;
       s.log.push({ at: now, event: `locked (${a.mode}${a.minutes ? ` ${a.minutes}m` : ""})` });
       break;
     }
@@ -151,6 +160,21 @@ export function apply(s: Session, a: Action): Session {
       }
       break;
     }
+    case "away": {
+      // Only counts while locked in watch mode; breaks are the sanctioned way to leave.
+      if (s.mode !== "watch" || s.status !== "locked" || s.away) break;
+      s.away = true;
+      s.strikes += 1;
+      if (s.endsAt) s.endsAt += STRIKE_MS;
+      s.log.push({ at: now, event: `left without a break, +${STRIKE_MS / 60000} min (strike ${s.strikes})` });
+      break;
+    }
+    case "back": {
+      if (!s.away) break;
+      s.away = false;
+      s.log.push({ at: now, event: "back at the desk" });
+      break;
+    }
     case "end": {
       s.status = "unlocked";
       s.log.push({ at: now, event: "session ended" });
@@ -161,3 +185,4 @@ export function apply(s: Session, a: Action): Session {
 }
 
 export const BREAK_MINUTES = BREAK_MS / 60000;
+export const STRIKE_MINUTES = STRIKE_MS / 60000;

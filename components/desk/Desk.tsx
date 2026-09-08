@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { act, createSession, fmt, useCountdown, useSession } from "@/lib/client";
 import { BREAK_MINUTES, type Action, type Mode, type Session } from "@/lib/session";
 import Watch from "./Watch";
+import Watcher from "./Watcher";
 import Lms from "./Lms";
 
 const KEY = "cage:desk:code";
@@ -89,6 +90,11 @@ export default function Desk() {
           {live && session && (
             <motion.div key="timer" {...fade}>
               <Timer s={session} />
+            </motion.div>
+          )}
+          {live && session?.mode === "watch" && (
+            <motion.div key="watcher" {...fade}>
+              <Watcher s={session} run={run} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -274,7 +280,7 @@ function Timer({ s }: { s: Session }) {
       </p>
       <p className="font-mono font-bold leading-none text-[clamp(72px,11vw,168px)] tracking-tight">{shown}</p>
       <div className="h-1 w-full bg-graphite rounded-full overflow-hidden" role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100}>
-        <div className={`h-full ${color} rounded-full`} style={{ width: open ? "100%" : `${progress * 100}%`, transition: "width 250ms linear" }} />
+        <div className={`h-full w-full origin-left ${color} rounded-full`} style={{ transform: `scaleX(${open ? 1 : progress})`, transition: "transform 250ms linear" }} />
       </div>
       {s.task && <p className="text-xl text-bone-2">{s.task}</p>}
     </section>

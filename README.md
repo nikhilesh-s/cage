@@ -17,7 +17,7 @@ Open `/desk` on the laptop, scan the QR on your phone (same network, or use the 
 
 - **Timer** — lock for 25 / 50 / 90 min.
 - **Assignment** — lock until the (mock) LMS submit button is pressed.
-- **Watch over me** — say "I want to write my essay, watch over me"; camera stays on for presence only, nothing is uploaded.
+- **Watch over me** — say "I want to write my essay, watch over me". The camera stays on and BlazeFace checks a person is in frame. Leave for 10 s without pressing Break: strike, +5 min, both screens tell you to come back. Nothing is uploaded.
 
 Guardrails: two 5-minute breaks per session, emergency unlock (two-step), visible timer and progress bar on both screens.
 
