@@ -10,3 +10,16 @@ Setup: laptop on the projector at https://cage-sigma.vercel.app/desk. Phone in h
 6. **Close (10s)** — Back to the landing page. "Cage. Locked until the assignment is in."
 
 Fallbacks: if the phone can't scan, type the URL cage-sigma.vercel.app/phone/CODE. If the mic is denied, type the task in the box under Listen. Reload the desk keeps the same code.
+
+## How it's built (for the "what's under the hood" question)
+
+- **Next.js 16 App Router + TypeScript**, one repo, no auth, no ORM. Three routes: `/` landing, `/desk` laptop dashboard, `/phone/[code]` lock screen, plus two API routes.
+- **Vercel** hosts it. GitHub repo is git-connected, so every push to `main` is a production deploy; PRs get preview URLs. Functions run on Fluid Compute (plain Node, 300s timeout).
+- **Upstash Redis** (via Vercel Marketplace, free tier) is the whole backend. One JSON blob per session keyed by the 4-letter code, 6-hour TTL. Both devices read and write the same blob; the laptop and the phone never talk to each other directly.
+- **Polling, not websockets.** The phone fetches its session every 1.5 s. Time-based transitions (break over, timer done) are applied on read in `lib/session.ts`, so there is no server-side timer to lose. Simplest thing that works on serverless.
+- **Local dev fallback:** with no Redis env the store is an in-memory Map, so `npm run dev` works offline.
+- **Pairing:** `qrcode.react` renders the QR on the desk pointing at `/phone/CODE`. No accounts, no login.
+- **Watch over me** is browser-only: `getUserMedia` for the camera, Web Speech API for the voice command, a 32x24 frame-diff heuristic for presence. Nothing leaves the device. No AI backend.
+- **Design system:** Tailwind v4 tokens in `globals.css`, Bricolage Grotesque + Geist + JetBrains Mono via `next/font`, Motion for state transitions, CSS keyframes for the hero cage. Rules live in `DESIGN.md`; built with the toolkit's taste-skill and Emil Kowalski's motion rules, no template.
+- **Testing:** one self-check for the session state machine, `node --experimental-strip-types lib/session.test.mjs`.
+- **Hardware story:** the phone page is the cage's screen. Real device = same page on an embedded display behind bars, plus a USB-C charger, plugged into the laptop.
