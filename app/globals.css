@@ -88,3 +88,14 @@ button:active, [role="button"]:active { transform: scale(0.97); }
     transition-duration: 0.01ms !important;
   }
 }
+
+@keyframes bar-drop {
+  from { transform: translateY(-340px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes latch-snap {
+  from { transform: translateX(-60px) scale(0.96); opacity: 0; }
+  to { transform: translateX(0) scale(1); opacity: 1; }
+}
+.bar-drop { animation: bar-drop 500ms var(--ease-out) both; }
+.latch-snap { animation: latch-snap 250ms var(--ease-out) 350ms both; transform-box: fill-box; transform-origin: center; }
